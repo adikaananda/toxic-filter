@@ -1,0 +1,865 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Toxic Filter - Next-Gen Content Protection</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary: #0A0E27;
+            --secondary: #1A1F3A;
+            --accent: #00E5FF;
+            --accent-glow: rgba(0, 229, 255, 0.2);
+            --text: #E8F1F5;
+            --text-dim: #8B9DAF;
+            --card-bg: rgba(26, 31, 58, 0.6);
+            --border: rgba(0, 229, 255, 0.1);
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: var(--primary);
+            color: var(--text);
+            overflow-x: hidden;
+            line-height: 1.6;
+        }
+
+        /* Animated Background */
+        .bg-animation {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+            opacity: 0.3;
+        }
+
+        .bg-grid {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            background-image: 
+                linear-gradient(var(--border) 1px, transparent 1px),
+                linear-gradient(90deg, var(--border) 1px, transparent 1px);
+            background-size: 50px 50px;
+            animation: gridMove 20s linear infinite;
+        }
+
+        @keyframes gridMove {
+            0% { transform: translate(0, 0); }
+            100% { transform: translate(50px, 50px); }
+        }
+
+        .bg-orb {
+            position: absolute;
+            border-radius: 50%;
+            filter: blur(80px);
+            opacity: 0.4;
+            animation: float 15s ease-in-out infinite;
+        }
+
+        .orb-1 {
+            width: 400px;
+            height: 400px;
+            background: var(--accent);
+            top: -200px;
+            right: -200px;
+            animation-delay: 0s;
+        }
+
+        .orb-2 {
+            width: 300px;
+            height: 300px;
+            background: #4F46E5;
+            bottom: -150px;
+            left: -150px;
+            animation-delay: 5s;
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translate(0, 0) scale(1); }
+            50% { transform: translate(50px, 50px) scale(1.1); }
+        }
+
+        /* Navigation */
+        nav {
+            position: fixed;
+            top: 0;
+            width: 100%;
+            z-index: 1000;
+            background: rgba(10, 14, 39, 0.8);
+            backdrop-filter: blur(20px);
+            border-bottom: 1px solid var(--border);
+            transition: all 0.3s ease;
+        }
+
+        nav.scrolled {
+            background: rgba(10, 14, 39, 0.95);
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+        }
+
+        .nav-container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 1.5rem 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo {
+            font-size: 1.5rem;
+            font-weight: 800;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            color: var(--text);
+            text-decoration: none;
+            letter-spacing: -0.5px;
+        }
+
+        .logo-icon {
+            width: 40px;
+            height: 40px;
+            background: linear-gradient(135deg, var(--accent), #4F46E5);
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.25rem;
+            box-shadow: 0 0 20px var(--accent-glow);
+        }
+
+        /* Hero Section */
+        .hero {
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            padding: 8rem 2rem 4rem;
+            position: relative;
+        }
+
+        .hero-content {
+            max-width: 1200px;
+            margin: 0 auto;
+            position: relative;
+            z-index: 1;
+        }
+
+        .hero-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.5rem 1.25rem;
+            background: var(--card-bg);
+            border: 1px solid var(--border);
+            border-radius: 50px;
+            font-size: 0.875rem;
+            color: var(--accent);
+            margin-bottom: 2rem;
+            backdrop-filter: blur(10px);
+            animation: fadeInUp 0.8s ease;
+        }
+
+        .hero h1 {
+            font-size: clamp(2.5rem, 8vw, 5.5rem);
+            font-weight: 900;
+            line-height: 1.1;
+            margin-bottom: 1.5rem;
+            background: linear-gradient(135deg, var(--text), var(--accent));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            animation: fadeInUp 0.8s ease 0.2s both;
+            letter-spacing: -2px;
+        }
+
+        .hero-subtitle {
+            font-size: clamp(1.1rem, 2vw, 1.5rem);
+            color: var(--text-dim);
+            max-width: 700px;
+            margin: 0 auto 3rem;
+            line-height: 1.7;
+            animation: fadeInUp 0.8s ease 0.4s both;
+        }
+
+        .hero-cta {
+            display: flex;
+            gap: 1rem;
+            justify-content: center;
+            flex-wrap: wrap;
+            animation: fadeInUp 0.8s ease 0.6s both;
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .btn {
+            padding: 1rem 2.5rem;
+            border-radius: 12px;
+            font-weight: 600;
+            font-size: 1.1rem;
+            text-decoration: none;
+            transition: all 0.3s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.75rem;
+            cursor: pointer;
+            border: none;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, var(--accent), #4F46E5);
+            color: var(--primary);
+            box-shadow: 0 10px 40px var(--accent-glow);
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 15px 50px rgba(0, 229, 255, 0.4);
+        }
+
+        .btn-secondary {
+            background: var(--card-bg);
+            color: var(--text);
+            border: 1px solid var(--border);
+            backdrop-filter: blur(10px);
+        }
+
+        .btn-secondary:hover {
+            background: var(--secondary);
+            border-color: var(--accent);
+        }
+
+        /* Container */
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 0 2rem;
+        }
+
+        /* Section */
+        section {
+            padding: 8rem 0;
+            position: relative;
+        }
+
+        .section-header {
+            text-align: center;
+            margin-bottom: 5rem;
+        }
+
+        .section-badge {
+            display: inline-block;
+            padding: 0.5rem 1.25rem;
+            background: var(--card-bg);
+            border: 1px solid var(--border);
+            border-radius: 50px;
+            font-size: 0.875rem;
+            color: var(--accent);
+            margin-bottom: 1.5rem;
+            backdrop-filter: blur(10px);
+        }
+
+        .section-title {
+            font-size: clamp(2rem, 5vw, 3.5rem);
+            font-weight: 800;
+            margin-bottom: 1rem;
+            letter-spacing: -1px;
+        }
+
+        .section-description {
+            font-size: 1.25rem;
+            color: var(--text-dim);
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        /* Features Grid */
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+            gap: 2rem;
+        }
+
+        .feature-card {
+            background: var(--card-bg);
+            border: 1px solid var(--border);
+            border-radius: 20px;
+            padding: 2.5rem;
+            backdrop-filter: blur(10px);
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .feature-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, var(--accent-glow), transparent);
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .feature-card:hover {
+            transform: translateY(-10px);
+            border-color: var(--accent);
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.4);
+        }
+
+        .feature-card:hover::before {
+            opacity: 1;
+        }
+
+        .feature-icon {
+            width: 70px;
+            height: 70px;
+            background: linear-gradient(135deg, var(--accent), #4F46E5);
+            border-radius: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2rem;
+            margin-bottom: 1.5rem;
+            position: relative;
+            z-index: 1;
+        }
+
+        .feature-card h3 {
+            font-size: 1.5rem;
+            margin-bottom: 1rem;
+            position: relative;
+            z-index: 1;
+        }
+
+        .feature-card p {
+            color: var(--text-dim);
+            line-height: 1.8;
+            position: relative;
+            z-index: 1;
+        }
+
+        /* Tutorial Steps */
+        .tutorial-timeline {
+            max-width: 900px;
+            margin: 0 auto;
+            position: relative;
+        }
+
+        .tutorial-timeline::before {
+            content: '';
+            position: absolute;
+            left: 35px;
+            top: 0;
+            bottom: 0;
+            width: 2px;
+            background: linear-gradient(180deg, var(--accent), #4F46E5);
+        }
+
+        .step {
+            display: flex;
+            gap: 2rem;
+            margin-bottom: 4rem;
+            position: relative;
+        }
+
+        .step-number {
+            flex-shrink: 0;
+            width: 70px;
+            height: 70px;
+            background: linear-gradient(135deg, var(--accent), #4F46E5);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.75rem;
+            font-weight: 800;
+            box-shadow: 0 0 30px var(--accent-glow);
+            position: relative;
+            z-index: 1;
+        }
+
+        .step-content {
+            flex: 1;
+            background: var(--card-bg);
+            border: 1px solid var(--border);
+            border-radius: 20px;
+            padding: 2rem;
+            backdrop-filter: blur(10px);
+        }
+
+        .step-content h3 {
+            font-size: 1.75rem;
+            margin-bottom: 1rem;
+            color: var(--accent);
+        }
+
+        .step-content p {
+            color: var(--text-dim);
+            margin-bottom: 1rem;
+            line-height: 1.8;
+        }
+
+        .code-block {
+            background: var(--primary);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 1.25rem;
+            font-family: 'Monaco', 'Courier New', monospace;
+            font-size: 0.95rem;
+            color: var(--accent);
+            overflow-x: auto;
+            margin: 1rem 0;
+        }
+
+        .step-highlight {
+            background: rgba(0, 229, 255, 0.1);
+            border-left: 3px solid var(--accent);
+            padding: 1rem 1.5rem;
+            border-radius: 8px;
+            margin-top: 1rem;
+        }
+
+        /* Team Grid */
+        .team-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 2rem;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .team-member {
+            text-align: center;
+            background: var(--card-bg);
+            border: 1px solid var(--border);
+            border-radius: 20px;
+            padding: 2.5rem 2rem;
+            backdrop-filter: blur(10px);
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .team-member::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, var(--accent-glow), transparent);
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .team-member:hover {
+            transform: translateY(-10px);
+            border-color: var(--accent);
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.4);
+        }
+
+        .team-member:hover::before {
+            opacity: 1;
+        }
+
+        .avatar {
+            width: 120px;
+            height: 120px;
+            background: linear-gradient(135deg, var(--accent), #4F46E5);
+            border-radius: 50%;
+            margin: 0 auto 1.5rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 3rem;
+            box-shadow: 0 0 30px var(--accent-glow);
+            position: relative;
+            z-index: 1;
+        }
+
+        .team-member h3 {
+            font-size: 1.5rem;
+            margin-bottom: 0.5rem;
+            position: relative;
+            z-index: 1;
+        }
+
+        .team-member p {
+            color: var(--text-dim);
+            position: relative;
+            z-index: 1;
+        }
+
+        /* Footer */
+        footer {
+            background: var(--secondary);
+            border-top: 1px solid var(--border);
+            padding: 3rem 0;
+            text-align: center;
+        }
+
+        footer p {
+            color: var(--text-dim);
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .nav-container {
+                padding: 1rem;
+            }
+
+            .hero {
+                padding: 6rem 1rem 3rem;
+            }
+
+            section {
+                padding: 4rem 0;
+            }
+
+            .section-header {
+                margin-bottom: 3rem;
+            }
+
+            .features-grid,
+            .team-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .tutorial-timeline::before {
+                left: 25px;
+            }
+
+            .step {
+                gap: 1.5rem;
+            }
+
+            .step-number {
+                width: 50px;
+                height: 50px;
+                font-size: 1.5rem;
+            }
+
+            .step-content {
+                padding: 1.5rem;
+            }
+
+            .hero-cta {
+                flex-direction: column;
+                align-items: stretch;
+            }
+
+            .btn {
+                justify-content: center;
+            }
+        }
+
+        /* Smooth Scroll */
+        html {
+            scroll-behavior: smooth;
+        }
+
+        /* Selection */
+        ::selection {
+            background: var(--accent);
+            color: var(--primary);
+        }
+    </style>
+</head>
+<body>
+    <!-- Background Animation -->
+    <div class="bg-animation">
+        <div class="bg-grid"></div>
+        <div class="bg-orb orb-1"></div>
+        <div class="bg-orb orb-2"></div>
+    </div>
+
+    <!-- Navigation -->
+    <nav id="navbar">
+        <div class="nav-container">
+            <a href="#" class="logo">
+                <div class="logo-icon">🛡️</div>
+                <span>TOXIC FILTER</span>
+            </a>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <section class="hero">
+        <div class="hero-content">
+            <div class="hero-badge">
+                ⚡ Next-Generation Content Protection
+            </div>
+            <h1>Browsing Lebih Aman<br>Tanpa Kata Toxic</h1>
+            <p class="hero-subtitle">
+                Extension Chrome yang secara otomatis memfilter dan menyensor kata-kata toxic di semua halaman web dengan real-time processing dan zero-lag performance.
+            </p>
+            <div class="hero-cta">
+                <a href="https://drive.google.com/drive/folders/1QfnQ3DvVEfVH0qYbuZ9H3CBBVTHMuFPU?usp=sharing" class="btn btn-primary" target="_blank">
+                    <span>📥</span>
+                    Download Extension
+                </a>
+                <a href="#tutorial" class="btn btn-secondary">
+                    <span>📖</span>
+                    Panduan Install
+                </a>
+            </div>
+        </div>
+    </section>
+
+    <!-- Features Section -->
+    <section id="features">
+        <div class="container">
+            <div class="section-header">
+                <div class="section-badge">✨ Features</div>
+                <h2 class="section-title">Teknologi Canggih untuk Perlindungan Maksimal</h2>
+                <p class="section-description">
+                    Dikembangkan dengan teknologi terkini untuk memberikan pengalaman browsing yang aman dan nyaman
+                </p>
+            </div>
+
+            <div class="features-grid">
+                <div class="feature-card">
+                    <div class="feature-icon">⚡</div>
+                    <h3>Real-time Processing</h3>
+                    <p>Filter otomatis bekerja secara real-time dengan zero-lag performance. Menggunakan MutationObserver API untuk mendeteksi konten dinamis secara instan.</p>
+                </div>
+
+                <div class="feature-card">
+                    <div class="feature-icon">🎛️</div>
+                    <h3>Flexible Modes</h3>
+                    <p>Pilih antara mode Sensor (a***g) atau Replace ([DISENSOR]) sesuai preferensi. Customize pengalaman browsing Anda dengan kontrol penuh.</p>
+                </div>
+
+                <div class="feature-card">
+                    <div class="feature-icon">🔒</div>
+                    <h3>Privacy First</h3>
+                    <p>Semua pemrosesan dilakukan secara lokal di browser Anda. Zero data collection, zero tracking. Privacy Anda adalah prioritas utama kami.</p>
+                </div>
+
+                <div class="feature-card">
+                    <div class="feature-icon">🚀</div>
+                    <h3>Ultra Lightweight</h3>
+                    <p>Extension dengan footprint minimal yang tidak memperlambat performa browser. Optimized untuk kecepatan dan efisiensi maksimal.</p>
+                </div>
+
+                <div class="feature-card">
+                    <div class="feature-icon">🌐</div>
+                    <h3>Universal Coverage</h3>
+                    <p>Bekerja di semua website tanpa exception. Dari social media hingga forum, berita, dan platform streaming.</p>
+                </div>
+
+                <div class="feature-card">
+                    <div class="feature-icon">🎯</div>
+                    <h3>Smart Detection</h3>
+                    <p>Algorithm pintar yang dapat mendeteksi variasi kata toxic dengan akurasi tinggi, termasuk penggunaan huruf kapital dan kombinasi karakter.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Tutorial Section -->
+    <section id="tutorial">
+        <div class="container">
+            <div class="section-header">
+                <div class="section-badge">📖 Installation Guide</div>
+                <h2 class="section-title">Install dalam 6 Langkah Mudah</h2>
+                <p class="section-description">
+                    Ikuti panduan step-by-step untuk menginstall extension di Chrome Anda
+                </p>
+            </div>
+
+            <div class="tutorial-timeline">
+                <div class="step">
+                    <div class="step-number">1</div>
+                    <div class="step-content">
+                        <h3>Download Extension</h3>
+                        <p>Klik tombol "Download Extension" di bagian atas halaman ini. File ZIP akan otomatis terdownload ke folder Downloads Anda.</p>
+                        <div class="step-highlight">
+                            <strong>💡 Tips:</strong> Pastikan koneksi internet Anda stabil untuk proses download yang lancar.
+                        </div>
+                    </div>
+                </div>
+
+                <div class="step">
+                    <div class="step-number">2</div>
+                    <div class="step-content">
+                        <h3>Extract File ZIP</h3>
+                        <p>Buka folder Downloads, klik kanan pada file ZIP yang telah didownload, lalu pilih "Extract Here" atau "Extract to Toxic Filter/".</p>
+                        <p>Ingat lokasi folder hasil extract ini, karena Anda akan membutuhkannya di langkah selanjutnya.</p>
+                    </div>
+                </div>
+
+                <div class="step">
+                    <div class="step-number">3</div>
+                    <div class="step-content">
+                        <h3>Buka Chrome Extensions</h3>
+                        <p>Ada dua cara untuk membuka halaman Extensions di Chrome:</p>
+                        <p><strong>Cara 1:</strong> Ketik di address bar</p>
+                        <div class="code-block">chrome://extensions/</div>
+                        <p><strong>Cara 2:</strong> Melalui Menu Chrome</p>
+                        <p>Klik icon titik tiga (⋮) di pojok kanan atas → Extensions → Manage Extensions</p>
+                    </div>
+                </div>
+
+                <div class="step">
+                    <div class="step-number">4</div>
+                    <div class="step-content">
+                        <h3>Aktifkan Developer Mode</h3>
+                        <p>Di halaman Chrome Extensions, cari toggle switch "Developer mode" di pojok kanan atas, lalu aktifkan (warna biru).</p>
+                        <div class="step-highlight">
+                            <strong>⚠️ Penting:</strong> Developer mode harus aktif untuk bisa load unpacked extension.
+                        </div>
+                    </div>
+                </div>
+
+                <div class="step">
+                    <div class="step-number">5</div>
+                    <div class="step-content">
+                        <h3>Load Unpacked Extension</h3>
+                        <p>Setelah Developer mode aktif, akan muncul tombol-tombol baru di bagian atas. Klik tombol <strong>"Load unpacked"</strong>.</p>
+                        <p>Window file explorer akan terbuka. Navigate ke folder extension yang sudah Anda extract di Step 2, lalu klik <strong>"Select Folder"</strong>.</p>
+                    </div>
+                </div>
+
+                <div class="step">
+                    <div class="step-number">6</div>
+                    <div class="step-content">
+                        <h3>Extension Ready!</h3>
+                        <p>Selamat! Extension Toxic Filter sekarang sudah aktif dan berjalan. Icon extension akan muncul di toolbar Chrome Anda.</p>
+                        <p>Untuk mengatur preferensi filter, clik icon extension lalu pilih mode yang Anda inginkan.</p>
+                        <div class="step-highlight">
+                            <strong>💡 Pro Tips:</strong> Pin extension ke toolbar agar mudah diakses. Klik icon puzzle (🧩) di toolbar → klik icon pin di samping Toxic Filter.
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Team Section -->
+    <section id="team">
+        <div class="container">
+            <div class="section-header">
+                <div class="section-badge">👥 Our Team</div>
+                <h2 class="section-title">Tim Pengembang</h2>
+                <p class="section-description">
+                    Dikembangkan oleh tim developer passionate yang peduli dengan pengalaman browsing yang aman
+                </p>
+            </div>
+
+            <div class="team-grid">
+                <div class="team-member">
+                    <div class="avatar">👨‍💻</div>
+                    <h3>Kadek Adika Ananda Aryana</h3>
+                    <p>2408561015</p>
+                </div>
+
+                <div class="team-member">
+                    <div class="avatar">👨‍💻</div>
+                    <h3>Fredrick Jonathan Christanto </h3>
+                    <p>2408561036</p>
+                </div>
+
+                <div class="team-member">
+                    <div class="avatar">👨‍💻</div>
+                    <h3>
+                    I Kadek Dhiyo Dewangga
+                    </h3>
+                    <p>2408561137</p>
+                </div>
+
+                <div class="team-member">
+                    <div class="avatar">👨‍💻</div>
+                    <h3>I Made Andhika Gitra Nugraha</h3>
+                    <p>2408561133</p>
+                </div>
+
+                <div class="team-member">
+                    <div class="avatar">👨‍💻</div>
+                    <h3>I Wayan Eka Dharmayasa   </h3>
+                    <p>2408561024</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer>
+        <div class="container">
+            <p>&copy; 2025 Toxic Filter Team. All rights reserved. Built with passion for safer browsing.</p>
+        </div>
+    </footer>
+
+    <script>
+        // Navbar scroll effect
+        const navbar = document.getElementById('navbar');
+        window.addEventListener('scroll', () => {
+            if (window.scrollY > 50) {
+                navbar.classList.add('scrolled');
+            } else {
+                navbar.classList.remove('scrolled');
+            }
+        });
+
+        // Smooth scroll for anchor links
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                const target = document.querySelector(this.getAttribute('href'));
+                if (target) {
+                    target.scrollIntoView({
+                        behavior: 'smooth',
+                        block: 'start'
+                    });
+                }
+            });
+        });
+
+        // Intersection Observer for fade-in animations
+        const observerOptions = {
+            threshold: 0.1,
+            rootMargin: '0px 0px -100px 0px'
+        };
+
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.style.opacity = '1';
+                    entry.target.style.transform = 'translateY(0)';
+                }
+            });
+        }, observerOptions);
+
+        document.querySelectorAll('.feature-card, .step, .team-member').forEach(el => {
+            el.style.opacity = '0';
+            el.style.transform = 'translateY(30px)';
+            el.style.transition = 'opacity 0.6s ease, transform 0.6s ease';
+            observer.observe(el);
+        });
+    </script>
+</body>
+</html>
